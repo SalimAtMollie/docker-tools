@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+
+  dns:
+    image: jpillora/dnsmasq
+    container_name: "${PROJECT_NAME}_dns"
+    depends_on:
+      - reverse_proxy
+    dns: dns
+    environment:
+      - "HTTP_USER=${DNS_USER}"
+      - "HTTP_PASS=${DNS_PASS}"
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./data/dnsmasq.conf:/etc/dnsmasq.conf
+    labels:
+      - "traefik.docker.network=traefik_public"
+
+      #Web Interface
+      - "traefik.http.services.${PROJECT_NAME}_dns.loadbalancer.server.port=8080" # web interface port
+      - "traefik.http.routers.${PROJECT_NAME}_dns.rule=Host(`dns.${PROJECT_BASE_URL}`)" # web interface url
+      - "traefik.http.routers.${PROJECT_NAME}_dns.entrypoints=web"
+
+      #UDP
+      - "traefik.udp.routers.${PROJECT_NAME}_dns.entrypoints=udp"
+      - "traefik.udp.routers.${PROJECT_NAME}_dns.service=${PROJECT_NAME}_dns"
+      - "traefik.udp.services.${PROJECT_NAME}_dns.loadbalancer.server.port=53" 
+
+      #DNS-over-HTTPS using reverse proxy
+      - "traefik.tcp.routers.${PROJECT_NAME}_dns.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.${PROJECT_NAME}_dns.entrypoints=dns"
+      - "traefik.tcp.routers.${PROJECT_NAME}_dns.service=${PROJECT_NAME}_dns"
+      - "traefik.tcp.services.${PROJECT_NAME}_dns.loadbalancer.server.port=53"
+    networks:
+      - traefik_public
+
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge

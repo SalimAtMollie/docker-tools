@@ -1,0 +1,39 @@
+version:  '3'
+
+services:
+
+  reverse_proxy:
+    image: traefik
+    container_name: "${PROJECT_NAME}_traefik"
+    dns: dns
+    command: 
+      - --api.insecure=true 
+      - --providers.docker 
+      - --entrypoints.web.address=:80 
+      - --entrypoints.smtp1.address=:1025
+      - --entrypoints.smtp2.address=:25/tcp 
+      - --entryPoints.udp.address=:53/udp
+      - --entryPoints.dns.address=:8053/tcp
+      #- --log.level=DEBUG #Enables debug logs
+    ports:
+      - '80:80'     # The HTTP port
+      - '8080:8080' # The Web UI (enabled by --api.insecure=true)
+      - '1025:1025' # SMTP 1
+      - '25:25/tcp'     # SMTP 2
+      - "53:53/udp" # DNS UDP Port
+      - "8053:8053/tcp" # DNS-over-HTTPS port
+    labels:      
+      - "traefik.http.services.${PROJECT_NAME}_traefik.loadbalancer.server.port=8080" # web interface port
+      - "traefik.http.routers.${PROJECT_NAME}_traefik.rule=Host(`traefik.${PROJECT_BASE_URL}`)" # web interface url
+      - "traefik.http.routers.${PROJECT_NAME}_traefik.entrypoints=web"
+      #Traefik config
+      - "--providers.docker.exposedbydefault=false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+    networks:
+      - traefik_public
+        
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge

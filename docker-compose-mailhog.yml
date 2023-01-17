@@ -1,0 +1,30 @@
+version:  '3'
+
+services:
+
+  mailhog: #swaks --to jerry@eduami.org --server 0.0.0.1 -p 25 --body "Hello Jerry, Are you free tonight?" --header "Subject: Party Invitation"
+    image: mailhog/mailhog
+    container_name: "mailhog"
+    dns: dns
+    depends_on:
+      - reverse_proxy
+    labels:
+      - "traefik.docker.network=traefik_public"
+
+      #Web Interface
+      - "traefik.http.services.${PROJECT_NAME}_mailhog.loadbalancer.server.port=8025" # web interface port
+      - "traefik.http.routers.${PROJECT_NAME}_mailhog.rule=Host(`mailhog.${PROJECT_BASE_URL}`)" # web interface url
+      - "traefik.http.routers.${PROJECT_NAME}_mailhog.entrypoints=web"
+
+      #SMTP
+      - "traefik.tcp.services.${PROJECT_NAME}_mailhog.loadbalancer.server.port=1025" 
+      - "traefik.tcp.routers.${PROJECT_NAME}_mailhog.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.${PROJECT_NAME}_mailhog.entrypoints=smtp1,smtp2"
+      - "traefik.tcp.routers.${PROJECT_NAME}_mailhog.service=${PROJECT_NAME}_mailhog"
+    networks:
+      - traefik_public
+
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge

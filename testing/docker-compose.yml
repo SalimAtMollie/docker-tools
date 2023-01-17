@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  testing:
+    build: container/scripts/.
+    hostname: ${DOMAIN}
+    network_mode: "host"
+    dns: local_dns
+    #networks:
+    #  - traefik_public
+      
+
+networks:
+  traefik_public:
+    external: true
+    name: traefik_public
