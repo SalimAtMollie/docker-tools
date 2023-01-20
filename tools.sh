@@ -40,7 +40,7 @@ app () {
         docker-compose -f docker-compose-${services[num-1]}.yml down
     else
         echo "${GREEN}Starting up ${services[num-1]} ${NC}."
-        docker-compose -f docker-compose-${services[num-1]}.yml up --build -d --remove-orphans
+        docker-compose -f docker-compose-${services[num-1]}.yml up --build -d
     fi
     
     app
