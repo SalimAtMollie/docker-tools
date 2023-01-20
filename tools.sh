@@ -22,8 +22,16 @@ app () {
         i=$((i+1))
     done
 
+    echo "${YELLOW}[$i] EXIT SCRIPT ${NC}"
+
     read -n1 -r -p "${YELLOW}[?] Press a number to continue: ${NC}" num
     echo \
+
+    if [ $i = "$num" ]; #No webshop picked - END
+    then
+        echo "${RED}[!] Program shutting down..."
+        exit 0
+    fi
 
     echo "You have pressed ${services[num-1]}."
 
