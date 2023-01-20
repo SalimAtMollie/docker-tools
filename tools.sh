@@ -29,7 +29,7 @@ app () {
 
     if [ $i = "$num" ]; #No service picked - END
     then
-        echo "${RED}[!] Program shutting down..."
+        echo "${RED}[!] Program shutting down...${NC}"
         exit 0
     fi
 
