@@ -27,7 +27,7 @@ app () {
     read -n1 -r -p "${YELLOW}[?] Press a number to continue: ${NC}" num
     echo \
 
-    if [ $i = "$num" ]; #No webshop picked - END
+    if [ $i = "$num" ]; #No service picked - END
     then
         echo "${RED}[!] Program shutting down..."
         exit 0
