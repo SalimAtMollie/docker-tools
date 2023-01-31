@@ -60,7 +60,7 @@ services:
       - "traefik.tcp.services.${PROJECT_NAME}-mailhog.loadbalancer.server.port=1025" 
       - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.entrypoints=smtp"
-      - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.service=${PROJECT_NAME}_mailhog"
+      - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.service=${PROJECT_NAME}-mailhog"
     networks:
       - traefik-public      
         
