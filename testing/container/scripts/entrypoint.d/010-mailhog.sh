@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #set -e
 
-swaks --to jerry@eduami.org --server mailhog -p 1025 --body "WE DID IT" --header "Subject: LETSGOOOO"
-swaks --to jerry@eduami.org --server mailhog -p 25 --body "WE DID IT" --header "Subject: LETSGOOOO"
+echo "Waiting for everything to load..."
+sleep 7
+echo "Test [1]: Mailhog."
+result=$(swaks -4 --to jerry@example.com --server mailhog:1025 --body "Hello Jerry, How are you?" --header "Subject: Greeting")
 
-swaks --to jerry@eduami.org --server mailhog.my.mollie.localhost -p 1025 --body "WE DID IT" --header "Subject: LETSGOOOO"
-swaks --to jerry@eduami.org --server mailhog.my.mollie.localhost -p 25 --body "WE DID IT" --header "Subject: LETSGOOOO"
-
-swaks --to jerry@eduami.org --server 172.24.0.19 -p 25 --body "WE DID IT" --header "Subject: LETSGOOOO"
-swaks --to jerry@eduami.org --server 172.24.0.19 -p 1025 --body "WE DID IT" --header "Subject: LETSGOOOO"
+if [[ "$result" == *"250 Ok"* ]]; then 
+    echo "Mail sent! Mailhog is configured properly."
+else
+    echo "Mail failed to send, check configuration."
+fi

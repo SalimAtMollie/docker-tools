@@ -1,9 +1,16 @@
 FROM php:8.0-apache
 
+#update package list and install telnet
+RUN apt update && \
+  apt install netbase && \
+  apt install telnet 
+
 RUN apt-get update -y && \
   apt-get install -y swaks
   
 RUN apt-get install -y dnsutils
+
+RUN apt-get update && apt-get install -y iputils-ping
 
 # prepare entrypoint.d pattern
 RUN mkdir /entrypoint.d

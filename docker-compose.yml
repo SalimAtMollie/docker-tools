@@ -2,38 +2,69 @@ version:  '3'
 
 services:
 
-  reverse_proxy:
+  testing:
+    build: testing/container/scripts/.
+    hostname: ${DOMAIN}
+    depends_on:
+      - mailhog
+    labels:      
+      - "traefik.docker.network=traefik-public"
+    links:
+      - mailhog:mailhog
+    networks:
+      - traefik-public
+
+  reverse-proxy:
     image: traefik
-    container_name: "${PROJECT_NAME}_traefik"
-    dns: dns
+    container_name: "${PROJECT_NAME}-traefik"
     command: 
       - --api.insecure=true 
       - --providers.docker 
       - --entrypoints.web.address=:80 
-      - --entrypoints.smtp1.address=:1025
-      - --entrypoints.smtp2.address=:25/tcp 
+      - --entrypoints.smtp.address=:25/tcp
       - --entryPoints.udp.address=:53/udp
       - --entryPoints.dns.address=:8053/tcp
       #- --log.level=DEBUG #Enables debug logs
     ports:
       - '80:80'     # The HTTP port
       - '8080:8080' # The Web UI (enabled by --api.insecure=true)
-      - '1025:1025' # SMTP 1
-      - '25:25/tcp'     # SMTP 2
       - "53:53/udp" # DNS UDP Port
       - "8053:8053/tcp" # DNS-over-HTTPS port
+      - '25:25/tcp' # SMTP
     labels:      
-      - "traefik.http.services.${PROJECT_NAME}_traefik.loadbalancer.server.port=8080" # web interface port
-      - "traefik.http.routers.${PROJECT_NAME}_traefik.rule=Host(`traefik.${PROJECT_BASE_URL}`)" # web interface url
-      - "traefik.http.routers.${PROJECT_NAME}_traefik.entrypoints=web"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.services.${PROJECT_NAME}-traefik.loadbalancer.server.port=8080" # web interface port
+      - "traefik.http.routers.${PROJECT_NAME}-traefik.rule=Host(`traefik.${PROJECT_BASE_URL}`)" # web interface url
+      - "traefik.http.routers.${PROJECT_NAME}-traefik.entrypoints=web"
       #Traefik config
+      - "--api.insecure=true"
+      - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
     networks:
-      - traefik_public
+      - traefik-public
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: "${PROJECT_NAME}-mailhog"
+    depends_on:
+      - reverse-proxy
+    labels:
+      - "traefik.docker.network=traefik-public"
+      #Web Interface
+      - "traefik.http.services.${PROJECT_NAME}-mailhog.loadbalancer.server.port=8025" # web interface port
+      - "traefik.http.routers.${PROJECT_NAME}-mailhog.rule=Host(`mailhog.${PROJECT_BASE_URL}`)" # web interface url
+      - "traefik.http.routers.${PROJECT_NAME}-mailhog.entrypoints=web"
+      #SMTP
+      - "traefik.tcp.services.${PROJECT_NAME}-mailhog.loadbalancer.server.port=1025" 
+      - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.entrypoints=smtp"
+      - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.service=${PROJECT_NAME}_mailhog"
+    networks:
+      - traefik-public      
         
 networks:
-  traefik_public:
-    name: traefik_public
+  traefik-public:
+    name: traefik-public
     driver: bridge
