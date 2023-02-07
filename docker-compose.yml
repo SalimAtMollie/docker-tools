@@ -3,8 +3,10 @@ version:  '3'
 services:
 
   testing:
+    dns: dns
+    container_name: "${PROJECT_NAME}-testing"
     build: testing/container/scripts/.
-    hostname: ${DOMAIN}
+    hostname: testing.com
     depends_on:
       - mailhog
     labels:      
@@ -13,6 +15,21 @@ services:
       - mailhog:mailhog
     networks:
       - traefik-public
+
+  ngrok: 
+    image: wernight/ngrok
+    container_name: "${PROJECT_NAME}-ngrok"
+    depends_on:
+      - reverse_proxy
+    labels:
+      - "traefik.docker.network=traefik-public"
+      #Web Interface
+      - "traefik.http.services.${PROJECT_NAME}-ngrok.loadbalancer.server.port=4040" # web interface port
+      - "traefik.http.routers.${PROJECT_NAME}-ngrok.rule=Host(`ngrok.${PROJECT_BASE_URL}`)" # web interface url
+      - "traefik.http.routers.${PROJECT_NAME}-ngrok.entrypoints=web"
+    networks:
+      - traefik-public
+    command: sh -c "ngrok authtoken ${NGROK_AUTHTOKEN} && ngrok http ${DOMAIN}:80"
 
   reverse-proxy:
     image: traefik

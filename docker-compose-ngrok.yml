@@ -2,24 +2,23 @@ version:  '3'
 
 services:
 
-  ngrok:
+  
+  ngrok: 
     image: wernight/ngrok
-    container_name: "${PROJECT_NAME}_ngrok"
-    dns: dns
+    container_name: "${PROJECT_NAME}-ngrok"
     depends_on:
       - reverse_proxy
-    environment:
-      - "NGROK_AUTH=${NGROK_AUTHTOKEN}"
     labels:
-      - "traefik.docker.network=traefik_public"
+      - "traefik.docker.network=traefik-public"
       #Web Interface
-      - "traefik.http.services.${PROJECT_NAME}_ngrok.loadbalancer.server.port=4040" # web interface port
-      - "traefik.http.routers.${PROJECT_NAME}_ngrok.rule=Host(`ngrok.${PROJECT_BASE_URL}`)" # web interface url
-      - "traefik.http.routers.${PROJECT_NAME}_ngrokh.entrypoints=web"
+      - "traefik.http.services.${PROJECT_NAME}-ngrok.loadbalancer.server.port=4040" # web interface port
+      - "traefik.http.routers.${PROJECT_NAME}-ngrok.rule=Host(`ngrok.${PROJECT_BASE_URL}`)" # web interface url
+      - "traefik.http.routers.${PROJECT_NAME}-ngrok.entrypoints=web"
     networks:
-      - traefik_public
+      - traefik-public
+    command: sh -c "ngrok authtoken ${NGROK_AUTHTOKEN} && ngrok http ${DOMAIN}:80"
 
 networks:
-  traefik_public:
-    name: traefik_public
+  traefik-public:
+    name: traefik-public
     driver: bridge
