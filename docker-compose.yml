@@ -20,11 +20,11 @@ services:
     image: wernight/ngrok
     container_name: "${PROJECT_NAME}-ngrok"
     depends_on:
-      - reverse_proxy
+      - reverse-proxy
     labels:
       - "traefik.docker.network=traefik-public"
       #Web Interface
-      - "traefik.http.services.${PROJECT_NAME}-ngrok.loadbalancer.server.port=4040" # web interface port
+      - "traefik.http.services.${PROJECT_NAME}-ngrok.loadbalancer.server.port=${NGROK_PORT}" # web interface port
       - "traefik.http.routers.${PROJECT_NAME}-ngrok.rule=Host(`ngrok.${PROJECT_BASE_URL}`)" # web interface url
       - "traefik.http.routers.${PROJECT_NAME}-ngrok.entrypoints=web"
     networks:
@@ -50,7 +50,7 @@ services:
       - '25:25/tcp' # SMTP
     labels:      
       - "traefik.docker.network=traefik-public"
-      - "traefik.http.services.${PROJECT_NAME}-traefik.loadbalancer.server.port=8080" # web interface port
+      - "traefik.http.services.${PROJECT_NAME}-traefik.loadbalancer.server.port=${TRAEFIK_PORT}" # web interface port
       - "traefik.http.routers.${PROJECT_NAME}-traefik.rule=Host(`traefik.${PROJECT_BASE_URL}`)" # web interface url
       - "traefik.http.routers.${PROJECT_NAME}-traefik.entrypoints=web"
       #Traefik config
@@ -70,11 +70,11 @@ services:
     labels:
       - "traefik.docker.network=traefik-public"
       #Web Interface
-      - "traefik.http.services.${PROJECT_NAME}-mailhog.loadbalancer.server.port=8025" # web interface port
+      - "traefik.http.services.${PROJECT_NAME}-mailhog.loadbalancer.server.port=${MAILHOG_PORT}" # web interface port
       - "traefik.http.routers.${PROJECT_NAME}-mailhog.rule=Host(`mailhog.${PROJECT_BASE_URL}`)" # web interface url
       - "traefik.http.routers.${PROJECT_NAME}-mailhog.entrypoints=web"
       #SMTP
-      - "traefik.tcp.services.${PROJECT_NAME}-mailhog.loadbalancer.server.port=1025" 
+      - "traefik.tcp.services.${PROJECT_NAME}-mailhog.loadbalancer.server.port=${MAILHOG_TCP_PORT}" 
       - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.entrypoints=smtp"
       - "traefik.tcp.routers.${PROJECT_NAME}-mailhog.service=${PROJECT_NAME}-mailhog"
